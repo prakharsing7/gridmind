@@ -1,0 +1,6 @@
+[general]
+ignore = body-is-missing
+contrib = CT1
+
+[contrib-title-conventional-commits]
+types = feat,fix,test,docs,refactor,chore,style,perf,ci
