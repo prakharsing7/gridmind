@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gridmind"
-version = "1.0.0"
+version = "0.1.0"
 description = "Optimise EV charging schedules and output OCPP-native ChargingProfile messages"
 readme = "README.md"
 license = {text = "MIT"}
@@ -83,6 +83,7 @@ select = [
     "SIM",  # flake8-simplify
     "PIE",  # misc improvements
     "RUF",  # Ruff-specific rules
+    "S",    # flake8-bandit (security)
 ]
 ignore = [
     "E501",    # line-too-long — Black handles this
@@ -95,7 +96,7 @@ known-first-party = ["gridmind"]
 force-sort-within-sections = true
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101"]  # assert statements are fine in tests
+"tests/**" = ["S101"]  # assert statements are fine in tests
 
 # ── Mypy ──────────────────────────────────────────────────────────────────────
 [tool.mypy]
@@ -115,6 +116,7 @@ ignore_missing_imports = true
 
 # ── Coverage ──────────────────────────────────────────────────────────────────
 [tool.coverage.run]
+branch = true
 source = ["gridmind"]
 omit = ["tests/*", "*/future.py"]
 

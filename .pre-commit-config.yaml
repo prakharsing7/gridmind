@@ -38,6 +38,8 @@ repos:
           - "pydantic>=2.5.0"
           - "numpy>=1.26.0"
           - "click>=8.1.0"
+          - "cvxpy>=1.4.0"
+          - "jsonschema>=4.20.0"
         args: ["--config-file=pyproject.toml"]
         files: ^gridmind/
 
