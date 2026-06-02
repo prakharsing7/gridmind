@@ -2,8 +2,13 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from gridmind.constants import DEFAULT_FREQUENCY_HZ, DEFAULT_VOLTAGE_V
-from gridmind.models.site import GridConstraints, PricePeriod, PriceSignal
+from gridmind.constants import (
+    DEFAULT_FLAT_RATE_EUR_KWH,
+    DEFAULT_FREQUENCY_HZ,
+    DEFAULT_VOLTAGE_V,
+)
+from gridmind.models.session import ChargerConfig
+from gridmind.models.site import GridConstraints, PricePeriod, PriceSignal, SiteConfig
 
 BASE = datetime(2026, 6, 1, 18, 0, 0, tzinfo=UTC)
 
@@ -45,3 +50,35 @@ def test_price_signal_valid() -> None:
 def test_price_signal_empty_raises() -> None:
     with pytest.raises(ValueError):
         PriceSignal(periods=[])
+
+
+def test_site_config_valid() -> None:
+    site = SiteConfig(
+        site_id="site-001",
+        chargers=[ChargerConfig(charger_id="C1", max_power_w=7360.0)],
+        grid=GridConstraints(max_site_power_w=22000.0),
+    )
+    assert site.num_chargers == 1
+    assert site.flat_rate_price == DEFAULT_FLAT_RATE_EUR_KWH
+
+
+def test_site_config_duplicate_charger_ids_raises() -> None:
+    with pytest.raises(ValueError, match="unique"):
+        SiteConfig(
+            site_id="site-001",
+            chargers=[
+                ChargerConfig(charger_id="C1", max_power_w=7360.0),
+                ChargerConfig(charger_id="C1", max_power_w=7360.0),
+            ],
+            grid=GridConstraints(max_site_power_w=22000.0),
+        )
+
+
+def test_site_config_get_charger() -> None:
+    site = SiteConfig(
+        site_id="site-001",
+        chargers=[ChargerConfig(charger_id="C1", max_power_w=7360.0)],
+        grid=GridConstraints(max_site_power_w=22000.0),
+    )
+    assert site.get_charger("C1") is not None
+    assert site.get_charger("MISSING") is None

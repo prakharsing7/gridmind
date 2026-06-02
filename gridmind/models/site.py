@@ -9,7 +9,13 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
-from gridmind.constants import DEFAULT_FREQUENCY_HZ, DEFAULT_VOLTAGE_V
+from gridmind.constants import (
+    DEFAULT_FLAT_RATE_EUR_KWH,
+    DEFAULT_FREQUENCY_HZ,
+    DEFAULT_INTERVAL_MINUTES,
+    DEFAULT_VOLTAGE_V,
+)
+from gridmind.models.session import ChargerConfig
 
 
 class GridConstraints(BaseModel):
@@ -58,3 +64,38 @@ class PriceSignal(BaseModel):
     periods: list[PricePeriod] = Field(..., min_length=1)
     currency: str = Field(default="EUR")
     unit: str = Field(default="EUR/kWh")
+
+
+class SiteConfig(BaseModel):
+    """
+    Complete configuration for a charging site.
+    This is the top-level input to the fleet optimiser.
+    """
+
+    site_id: str = Field(..., description="Unique site identifier")
+    site_name: str | None = Field(default=None)
+
+    chargers: list[ChargerConfig] = Field(..., min_length=1)
+    grid: GridConstraints
+    price_signal: PriceSignal | None = Field(default=None)
+    flat_rate_price: float = Field(default=DEFAULT_FLAT_RATE_EUR_KWH, ge=0.0)
+    optimisation_interval_minutes: int = Field(
+        default=DEFAULT_INTERVAL_MINUTES, ge=1, le=60
+    )
+
+    @field_validator("chargers")
+    @classmethod
+    def charger_ids_unique(cls, v: list[ChargerConfig]) -> list[ChargerConfig]:
+        ids = [c.charger_id for c in v]
+        if len(ids) != len(set(ids)):
+            raise ValueError("All charger_id values must be unique within a site")
+        return v
+
+    @property
+    def num_chargers(self) -> int:
+        """Number of chargers at this site."""
+        return len(self.chargers)
+
+    def get_charger(self, charger_id: str) -> ChargerConfig | None:
+        """Return ChargerConfig for the given charger_id, or None if not found."""
+        return next((c for c in self.chargers if c.charger_id == charger_id), None)
