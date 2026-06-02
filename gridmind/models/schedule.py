@@ -39,7 +39,7 @@ class EVChargingSchedule(BaseModel):
 
     session_id: str
     charger_id: str
-    periods: list[SchedulePeriod] = Field(..., min_length=1)
+    periods: list[SchedulePeriod] = Field(...)
 
     total_energy_kwh: float = Field(..., ge=0.0)
     final_soc: float = Field(..., ge=0.0, le=100.0)
