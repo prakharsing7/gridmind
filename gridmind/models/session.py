@@ -106,9 +106,10 @@ class EVSession(BaseModel):
     @property
     def energy_needed_kwh(self) -> float:
         """Energy (kWh) needed to go from initial_soc to target_soc, accounting for efficiency."""
-        return (
+        return max(
+            0.0,
             (self.target_soc - self.initial_soc)
             / 100.0
             * self.battery_capacity_kwh
-            / self.charging_efficiency
+            / self.charging_efficiency,
         )

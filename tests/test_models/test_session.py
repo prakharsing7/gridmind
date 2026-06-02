@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
+from gridmind.constants import DEFAULT_CHARGING_EFFICIENCY
 from gridmind.exceptions import (
     ConfigValidationError,
     InfeasibleError,
@@ -42,7 +43,7 @@ def test_ev_session_valid():
         max_charge_rate_w=7360.0,
     )
     assert s.session_id == "s001"
-    assert s.charging_efficiency == 0.92  # default from DEFAULT_CHARGING_EFFICIENCY
+    assert s.charging_efficiency == DEFAULT_CHARGING_EFFICIENCY
 
 
 def test_ev_session_departure_before_arrival_raises():
