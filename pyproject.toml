@@ -54,6 +54,9 @@ gridmind = "gridmind.cli.main:cli"
 where = ["."]
 include = ["gridmind*"]
 
+[tool.setuptools.package-data]
+"gridmind" = ["ocpp/v16/schemas/*.json"]
+
 # ── Pytest ────────────────────────────────────────────────────────────────────
 [tool.pytest.ini_options]
 testpaths = ["tests"]
