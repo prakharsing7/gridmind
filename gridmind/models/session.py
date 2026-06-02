@@ -9,7 +9,11 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from gridmind.constants import DEFAULT_CHARGING_EFFICIENCY, MIN_SOC_DEFAULT_PERCENT
+from gridmind.constants import (
+    DEFAULT_CHARGING_EFFICIENCY,
+    DEFAULT_VOLTAGE_V,
+    MIN_SOC_DEFAULT_PERCENT,
+)
 
 
 class EVSession(BaseModel):
@@ -113,3 +117,39 @@ class EVSession(BaseModel):
             * self.battery_capacity_kwh
             / self.charging_efficiency,
         )
+
+
+class ChargerConfig(BaseModel):
+    """
+    Configuration for a physical EV charger.
+    This is the hardware layer; EVSession is the session layer.
+    """
+
+    charger_id: str = Field(
+        ..., description="Unique charger identifier (matches OCPP chargePointId)"
+    )
+    max_power_w: float = Field(
+        ..., gt=0.0, description="Hardware maximum power output (Watts)"
+    )
+    min_power_w: float = Field(
+        default=0.0,
+        ge=0.0,
+        description="Minimum power when active (Watts). 0 = can be turned off",
+    )
+    num_connectors: int = Field(
+        default=1, ge=1, le=4, description="Number of connectors on this charger"
+    )
+    connector_type: str = Field(
+        default="Type2",
+        description="Connector type: Type1, Type2, CCS, CHAdeMO, Schuko",
+    )
+    supports_smart_charging: bool = Field(
+        default=True,
+        description="Whether charger implements OCPP SetChargingProfile",
+    )
+    phase_count: int = Field(
+        default=3, ge=1, le=3, description="Number of AC phases (1 or 3)"
+    )
+    voltage_v: float = Field(
+        default=DEFAULT_VOLTAGE_V, gt=0.0, description="Operating voltage (Volts)"
+    )

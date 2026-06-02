@@ -12,7 +12,7 @@ from gridmind.exceptions import (
     SessionConflictError,
     SolverError,
 )
-from gridmind.models.session import EVSession
+from gridmind.models.session import ChargerConfig, EVSession
 
 BASE_TIME = datetime(2026, 6, 1, 18, 0, 0, tzinfo=UTC)
 
@@ -101,3 +101,29 @@ def test_energy_needed_kwh_property():
     )
     # (80 - 30) / 100 * 60 / 1.0 = 30 kWh
     assert abs(s.energy_needed_kwh - 30.0) < 0.01
+
+
+def test_charger_config_defaults():
+    c = ChargerConfig(charger_id="CHARGER-01", max_power_w=7360.0)
+    assert c.phase_count == 3
+    assert c.voltage_v == 230.0
+    assert c.supports_smart_charging is True
+    assert c.connector_type == "Type2"
+    assert c.num_connectors == 1
+
+
+def test_charger_config_custom():
+    c = ChargerConfig(
+        charger_id="DC-01",
+        max_power_w=22080.0,
+        phase_count=3,
+        voltage_v=400.0,
+        connector_type="CCS",
+    )
+    assert c.max_power_w == 22080.0
+    assert c.connector_type == "CCS"
+
+
+def test_charger_config_zero_max_power_raises():
+    with pytest.raises(ValueError):
+        ChargerConfig(charger_id="bad", max_power_w=0.0)
