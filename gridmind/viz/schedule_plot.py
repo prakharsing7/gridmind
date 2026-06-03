@@ -9,7 +9,12 @@ try:
 except ImportError as e:
     raise ImportError("matplotlib required: pip install 'gridmind[viz]'") from e
 
-from ..constants import COLOUR_GRID_LIMIT, COLOUR_OPTIMISED, PLOT_FIGSIZE_FLEET
+from ..constants import (
+    COLOUR_GRID_LIMIT,
+    COLOUR_OPTIMISED,
+    PLOT_FIGSIZE_FLEET,
+    PLOT_FIGSIZE_SINGLE,
+)
 from ..models.schedule import EVChargingSchedule, FleetSchedule
 
 
@@ -100,10 +105,9 @@ def plot_single_schedule(
     session: EVChargingSchedule, title: str | None = None
 ) -> plt.Figure:
     """Plot power timeline for a single EV session."""
-    fig, ax = plt.subplots(figsize=(12, 5))
-    times, powers = [], []
+    fig, ax = plt.subplots(figsize=PLOT_FIGSIZE_SINGLE)
+    powers: list[float] = []
     for period in session.periods:
-        times.extend([period.start, period.end])
         powers.extend([period.power_w / 1000.0] * 2)
 
     ax.fill_between(range(len(powers)), powers, alpha=0.6, color=COLOUR_OPTIMISED)

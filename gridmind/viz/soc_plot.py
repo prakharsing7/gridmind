@@ -7,7 +7,7 @@ try:
 except ImportError as e:
     raise ImportError("matplotlib required: pip install 'gridmind[viz]'") from e
 
-from ..constants import PLOT_FIGSIZE_FLEET
+from ..constants import BATTERY_MEDIUM_KWH, PLOT_FIGSIZE_FLEET, PLOT_SOC_REFERENCE_PCT
 from ..models.schedule import EVChargingSchedule
 
 
@@ -22,10 +22,21 @@ def plot_soc_curves(
     SoC is reconstructed from period energy values (approximate).
     """
     fig, ax = plt.subplots(figsize=PLOT_FIGSIZE_FLEET)
+
+    if not sessions:
+        ax.text(0.5, 0.5, "No sessions to plot", ha="center", va="center")
+        return fig
+
     colours = plt.cm.Set2.colors
 
     for idx, session in enumerate(sessions):
-        cap_kwh = battery_capacities_kwh[idx] if battery_capacities_kwh else 60.0
+        if not session.periods:
+            continue
+        cap_kwh = (
+            battery_capacities_kwh[idx]
+            if battery_capacities_kwh
+            else BATTERY_MEDIUM_KWH
+        )
         times = [session.periods[0].start]
         soc_values = [0.0]
 
@@ -50,7 +61,7 @@ def plot_soc_curves(
     ax.set_title(title or "SoC Trajectories", fontsize=13, fontweight="bold")
     ax.set_ylim(0, 105)
     ax.axhline(
-        80,
+        PLOT_SOC_REFERENCE_PCT,
         color="grey",
         linestyle="--",
         linewidth=1,

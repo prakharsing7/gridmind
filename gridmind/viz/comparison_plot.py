@@ -40,12 +40,10 @@ def plot_strategy_comparison(
     ax_power = axes[1]
 
     def _power_series(sched: EVChargingSchedule) -> tuple[range, list[float]]:
-        times: list = []
         powers: list[float] = []
         for p in sched.periods:
-            times.extend([p.start, p.end])
             powers.extend([p.power_w / 1000.0] * 2)
-        return range(len(times)), powers
+        return range(len(powers)), powers
 
     x_u, p_u = _power_series(uncontrolled)
     x_o, p_o = _power_series(optimised)

@@ -34,6 +34,9 @@ SOC_TOLERANCE_PERCENT = 0.5
 MIN_SOC_DEFAULT_PERCENT = 10.0
 MAX_SOC_PERCENT = 100.0
 
+# SoC plot reference line
+PLOT_SOC_REFERENCE_PCT = 80.0  # typical target SoC shown as reference on SoC plots
+
 # OCPP 1.6 limits
 OCPP16_MAX_PERIODS_PER_PROFILE = 1024
 OCPP16_MAX_STACK_LEVEL = 9  # 0-based; valid range 0-9
