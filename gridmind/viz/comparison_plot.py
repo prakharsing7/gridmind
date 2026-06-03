@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 try:
+    from matplotlib.figure import Figure as MplFigure
     import matplotlib.pyplot as plt
 except ImportError as e:
     raise ImportError("matplotlib required: pip install 'gridmind[viz]'") from e
@@ -15,7 +16,7 @@ def plot_strategy_comparison(
     optimised: EVChargingSchedule,
     uncontrolled: EVChargingSchedule,
     title: str | None = None,
-) -> plt.Figure:
+) -> MplFigure:
     """Side-by-side cost and power comparison between optimised and uncontrolled strategies."""
     fig, axes = plt.subplots(1, 2, figsize=PLOT_FIGSIZE_COMPARISON)
 

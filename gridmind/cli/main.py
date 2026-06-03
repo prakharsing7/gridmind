@@ -15,6 +15,7 @@ import json
 import logging
 from pathlib import Path
 import sys
+from typing import Any
 
 import click
 
@@ -93,6 +94,7 @@ def run(
 
     click.echo(f"Optimising with {interval}-minute intervals (OCPP {ocpp_version})...")
 
+    optimizer: Any
     if config_data["type"] == "single_ev":
         optimizer = SingleEVOptimizer(interval_minutes=interval)
         session = config_data["session"]
@@ -243,9 +245,9 @@ def validate(config: str) -> None:
 
 
 def _generate_plots(
-    sessions: list,
+    sessions: list[Any],
     output_dir: Path,
-    fleet_schedule: object = None,
+    fleet_schedule: Any = None,
 ) -> None:
     try:
         from ..viz.schedule_plot import plot_fleet_schedule

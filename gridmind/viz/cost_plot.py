@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 try:
+    from matplotlib.figure import Figure as MplFigure
     import matplotlib.pyplot as plt
 except ImportError as e:
     raise ImportError("matplotlib required: pip install 'gridmind[viz]'") from e
@@ -14,7 +15,7 @@ from ..models.schedule import EVChargingSchedule
 def plot_cost_breakdown(
     sessions: list[EVChargingSchedule],
     title: str | None = None,
-) -> plt.Figure:
+) -> MplFigure:
     """Bar chart of total cost per EV session."""
     fig, ax = plt.subplots(figsize=PLOT_FIGSIZE_SINGLE)
     labels = [s.charger_id for s in sessions]

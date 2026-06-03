@@ -7,8 +7,10 @@ structural checks rather than full JSON Schema validation.
 
 from __future__ import annotations
 
+from typing import Any
 
-def validate_set_charging_profile_request(request: dict) -> list[str]:
+
+def validate_set_charging_profile_request(request: dict[str, Any]) -> list[str]:
     """
     Structurally validate an OCPP 2.0.1 SetChargingProfile.req dict.
 

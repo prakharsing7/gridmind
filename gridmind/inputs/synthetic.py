@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from typing import Any
 
-def generate_example_config(config_type: str) -> dict:
+
+def generate_example_config(config_type: str) -> dict[str, Any]:
     """
     Generate a template config dict for the given type.
 

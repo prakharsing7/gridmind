@@ -63,7 +63,7 @@ class SingleEVOptimizer(BaseOptimizer):
         >>> print(f"Total cost: {schedule.total_cost:.2f} EUR")
     """
 
-    def optimize(  # type: ignore[override]
+    def optimize(
         self,
         session: EVSession,
         price_signal: PriceSignal | None = None,
@@ -111,11 +111,11 @@ class SingleEVOptimizer(BaseOptimizer):
         initial_energy_kwh = self._soc_to_energy_kwh(
             session.initial_soc, session.battery_capacity_kwh
         )
-        cumulative_energy = cp.cumsum(energy_added_kwh)
+        cumulative_energy = cp.cumsum(energy_added_kwh)  # type: ignore[attr-defined]
         soc_energy_kwh = initial_energy_kwh + cumulative_energy
         soc_pct = soc_energy_kwh / session.battery_capacity_kwh * 100.0
 
-        objective = cp.Minimize(cp.sum(cp.multiply(prices, energy_added_kwh)))
+        objective = cp.Minimize(cp.sum(cp.multiply(prices, energy_added_kwh)))  # type: ignore[attr-defined]
         constraints = [
             p >= p_min_w,
             p <= p_max_w,
@@ -126,13 +126,13 @@ class SingleEVOptimizer(BaseOptimizer):
 
         problem = cp.Problem(objective, constraints)
         try:
-            problem.solve(solver=self.solver, verbose=self.verbose)
+            problem.solve(solver=self.solver, verbose=self.verbose)  # type: ignore[no-untyped-call]
         except cp.SolverError:
             logger.warning(
                 "Primary solver %s failed, trying %s", self.solver, FALLBACK_SOLVER
             )
             try:
-                problem.solve(solver=FALLBACK_SOLVER, verbose=self.verbose)
+                problem.solve(solver=FALLBACK_SOLVER, verbose=self.verbose)  # type: ignore[no-untyped-call]
             except cp.SolverError as e:
                 raise SolverError(
                     f"Both solvers failed for session {session.session_id}: {e}"
@@ -146,7 +146,7 @@ class SingleEVOptimizer(BaseOptimizer):
         if problem.status not in [cp.OPTIMAL, cp.OPTIMAL_INACCURATE]:
             raise SolverError(f"Unexpected solver status: {problem.status}")
 
-        power_values = np.where(p.value < MIN_POWER_THRESHOLD_W, 0.0, p.value)
+        power_values = np.where(p.value < MIN_POWER_THRESHOLD_W, 0.0, p.value)  # type: ignore[operator, arg-type]
         schedule_periods = self._build_schedule_periods(intervals, power_values, prices)
 
         total_added = float(

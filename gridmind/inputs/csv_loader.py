@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
+from typing import Any
 
 from ..models.session import EVSession
 
@@ -32,7 +33,7 @@ def load_sessions_from_csv(path: Path) -> list[EVSession]:
         for row_num, row in enumerate(reader, start=2):
             lower_row = {k.strip().lower(): v.strip() for k, v in row.items()}
             try:
-                kwargs: dict = {
+                kwargs: dict[str, Any] = {
                     "session_id": lower_row["session_id"],
                     "charger_id": lower_row["charger_id"],
                     "arrival_time": lower_row["arrival_time"],

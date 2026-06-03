@@ -41,3 +41,13 @@ def test_validation_returns_no_errors_for_valid() -> None:
     req = _make_valid_request()
     errors = validate_set_charging_profile_request(req)
     assert errors == []
+
+
+def test_serialise_raises_for_non_datetime() -> None:
+    """_serialise in v16 validator should raise TypeError for non-datetime objects."""
+    import pytest
+
+    from gridmind.ocpp.v16.validator import _serialise
+
+    with pytest.raises(TypeError):
+        _serialise("not-a-datetime")
