@@ -46,14 +46,23 @@ def _make_fleet_schedule() -> FleetSchedule:
     )
 
 
+EXPECTED_KEYS = {
+    "total_energy_kwh",
+    "total_cost",
+    "peak_demand_kw",
+    "avg_demand_kw",
+    "num_sessions",
+    "all_feasible",
+    "feeder_limit_respected",
+    "demand_response_met",
+    "optimisation_duration_ms",
+    "solver",
+}
+
+
 def test_compute_fleet_metrics_keys() -> None:
-    fs = _make_fleet_schedule()
-    metrics = compute_fleet_metrics(fs)
-    assert "total_energy_kwh" in metrics
-    assert "total_cost" in metrics
-    assert "peak_demand_kw" in metrics
-    assert "num_sessions" in metrics
-    assert "all_feasible" in metrics
+    metrics = compute_fleet_metrics(_make_fleet_schedule())
+    assert set(metrics.keys()) == EXPECTED_KEYS
 
 
 def test_compute_fleet_metrics_values() -> None:
@@ -79,5 +88,14 @@ def test_write_schedule_csv(tmp_path: Path) -> None:
     write_schedule_csv(fs.sessions, output_file)
     rows = list(csv.DictReader(output_file.open()))
     assert len(rows) > 0
-    assert "session_id" in rows[0]
-    assert "power_w" in rows[0]
+    expected_cols = {
+        "session_id",
+        "charger_id",
+        "start",
+        "end",
+        "power_w",
+        "price_per_kwh",
+        "energy_kwh",
+        "cost",
+    }
+    assert set(rows[0].keys()) == expected_cols

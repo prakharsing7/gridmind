@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..constants import WATTS_PER_KW
 from ..models.schedule import FleetSchedule
 
 
@@ -19,8 +20,8 @@ def compute_fleet_metrics(fleet_schedule: FleetSchedule) -> dict[str, Any]:
     return {
         "total_energy_kwh": fleet_schedule.total_energy_kwh,
         "total_cost": fleet_schedule.total_cost,
-        "peak_demand_kw": fleet_schedule.peak_demand_w / 1000.0,
-        "avg_demand_kw": fleet_schedule.avg_demand_w / 1000.0,
+        "peak_demand_kw": fleet_schedule.peak_demand_w / WATTS_PER_KW,
+        "avg_demand_kw": fleet_schedule.avg_demand_w / WATTS_PER_KW,
         "num_sessions": len(fleet_schedule.sessions),
         "all_feasible": fleet_schedule.all_sessions_feasible,
         "feeder_limit_respected": fleet_schedule.feeder_limit_respected,
