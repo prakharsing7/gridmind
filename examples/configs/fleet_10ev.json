@@ -1,0 +1,39 @@
+{
+  "type": "fleet",
+  "site_config": {
+    "site_id": "demo-fleet-site",
+    "chargers": [
+      {"charger_id": "CHARGER-01", "max_power_w": 7360.0},
+      {"charger_id": "CHARGER-02", "max_power_w": 7360.0},
+      {"charger_id": "CHARGER-03", "max_power_w": 11000.0},
+      {"charger_id": "CHARGER-04", "max_power_w": 7360.0},
+      {"charger_id": "CHARGER-05", "max_power_w": 7360.0}
+    ],
+    "grid": {"max_site_power_w": 50000.0},
+    "flat_rate_price": 0.25,
+    "optimisation_interval_minutes": 15
+  },
+  "sessions": [
+    {
+      "session_id": "s001", "charger_id": "CHARGER-01",
+      "arrival_time": "2026-06-01T17:00:00+00:00",
+      "departure_time": "2026-06-02T08:00:00+00:00",
+      "initial_soc": 25.0, "target_soc": 80.0,
+      "battery_capacity_kwh": 60.0, "max_charge_rate_w": 7360.0
+    },
+    {
+      "session_id": "s002", "charger_id": "CHARGER-02",
+      "arrival_time": "2026-06-01T19:00:00+00:00",
+      "departure_time": "2026-06-02T07:00:00+00:00",
+      "initial_soc": 45.0, "target_soc": 90.0,
+      "battery_capacity_kwh": 77.0, "max_charge_rate_w": 7360.0
+    },
+    {
+      "session_id": "s003", "charger_id": "CHARGER-03",
+      "arrival_time": "2026-06-01T18:30:00+00:00",
+      "departure_time": "2026-06-02T09:00:00+00:00",
+      "initial_soc": 10.0, "target_soc": 80.0,
+      "battery_capacity_kwh": 82.0, "max_charge_rate_w": 11000.0
+    }
+  ]
+}
