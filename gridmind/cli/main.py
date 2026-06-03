@@ -66,15 +66,24 @@ def run(
         gridmind run --config fleet.json --output results/ --plot --format both
     """
     from ..inputs.json_loader import load_config
-    from ..ocpp.v16.charging_profile import (
-        build_set_charging_profile_request,
-        to_json,
-        to_ocpp_message,
-    )
     from ..optimizer.fleet import FleetOptimizer
     from ..optimizer.single_ev import SingleEVOptimizer
     from ..outputs.csv_writer import write_schedule_csv
     from ..outputs.json_writer import write_fleet_results
+
+    if ocpp_version == "2.0.1":
+        from ..ocpp.v201.charging_profile import (
+            build_set_charging_profile_request,
+            to_json,
+        )
+
+        to_ocpp_message = None
+    else:
+        from ..ocpp.v16.charging_profile import (  # type: ignore[assignment]
+            build_set_charging_profile_request,
+            to_json,
+            to_ocpp_message,
+        )
 
     output_dir = Path(output)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -82,7 +91,7 @@ def run(
     click.echo(f"Loading config from {config}...")
     config_data = load_config(Path(config))
 
-    click.echo(f"Optimising with {interval}-minute intervals...")
+    click.echo(f"Optimising with {interval}-minute intervals (OCPP {ocpp_version})...")
 
     if config_data["type"] == "single_ev":
         optimizer = SingleEVOptimizer(interval_minutes=interval)
@@ -101,9 +110,10 @@ def run(
         profile_path.write_text(to_json(ocpp_request))
         click.echo(f"OCPP profile written to {profile_path}")
 
-        message_path = output_dir / f"ocpp_message_{session.session_id}.json"
-        message_path.write_text(to_ocpp_message(ocpp_request))
-        click.echo(f"OCPP message written to {message_path}")
+        if to_ocpp_message is not None:
+            message_path = output_dir / f"ocpp_message_{session.session_id}.json"
+            message_path.write_text(to_ocpp_message(ocpp_request))
+            click.echo(f"OCPP message written to {message_path}")
 
         if output_format in ("csv", "both"):
             csv_path = output_dir / f"schedule_{session.session_id}.csv"
@@ -153,7 +163,10 @@ def run(
 @click.option("--config", "-c", required=True, type=click.Path(exists=True))
 @click.option("--output", "-o", default=".", type=click.Path())
 @click.option("--plot", is_flag=True)
-def compare(config: str, output: str, plot: bool) -> None:
+@click.option(
+    "--interval", default=15, type=int, help="Optimisation interval in minutes"
+)
+def compare(config: str, output: str, plot: bool, interval: int) -> None:
     """Compare optimised vs uncontrolled charging strategies."""
     from ..inputs.json_loader import load_config
     from ..optimizer.single_ev import SingleEVOptimizer
@@ -170,7 +183,10 @@ def compare(config: str, output: str, plot: bool) -> None:
     price_signal = config_data.get("price_signal")
     flat_rate = config_data.get("flat_rate", 0.25)
 
-    opt = SingleEVOptimizer(interval_minutes=15)
+    output_dir = Path(output)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    opt = SingleEVOptimizer(interval_minutes=interval)
     optimised = opt.optimize(session, price_signal, flat_rate)
     baseline = uncontrolled_strategy(
         session, price_signal=price_signal, flat_rate=flat_rate
@@ -188,6 +204,9 @@ def compare(config: str, output: str, plot: bool) -> None:
         saving = baseline.total_cost - optimised.total_cost
         pct = saving / baseline.total_cost * 100
         click.echo(f"Saving: {saving:.2f} EUR ({pct:.1f}%)")
+
+    if plot:
+        _generate_plots([optimised], output_dir)
 
 
 @cli.command("generate-config")
@@ -211,17 +230,23 @@ def generate_config(config_type: str, output: str) -> None:
 @click.option("--config", "-c", required=True, type=click.Path(exists=True))
 def validate(config: str) -> None:
     """Validate a config file without running optimisation."""
+    from pydantic import ValidationError
+
     from ..inputs.json_loader import load_config
 
     try:
         load_config(Path(config))
         click.echo("Config is valid")
-    except Exception as e:
+    except (ValueError, ValidationError) as e:
         click.echo(f"Validation failed: {e}", err=True)
         sys.exit(1)
 
 
-def _generate_plots(sessions, output_dir, fleet_schedule=None):  # type: ignore[no-untyped-def]
+def _generate_plots(
+    sessions: list,
+    output_dir: Path,
+    fleet_schedule: object = None,
+) -> None:
     try:
         from ..viz.schedule_plot import plot_fleet_schedule
         from ..viz.soc_plot import plot_soc_curves
