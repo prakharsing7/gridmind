@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 try:
+    from matplotlib.figure import Figure as MplFigure
     import matplotlib.pyplot as plt
 except ImportError as e:
     raise ImportError("matplotlib required: pip install 'gridmind[viz]'") from e
@@ -15,7 +16,7 @@ def plot_soc_curves(
     sessions: list[EVChargingSchedule],
     battery_capacities_kwh: list[float] | None = None,
     title: str | None = None,
-) -> plt.Figure:
+) -> MplFigure:
     """
     Plot estimated SoC trajectory for each session.
 
@@ -27,7 +28,7 @@ def plot_soc_curves(
         ax.text(0.5, 0.5, "No sessions to plot", ha="center", va="center")
         return fig
 
-    colours = plt.cm.Set2.colors
+    colours = plt.cm.Set2.colors  # type: ignore[attr-defined]
 
     for idx, session in enumerate(sessions):
         if not session.periods:

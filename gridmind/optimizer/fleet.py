@@ -15,6 +15,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 import logging
 import time
+from typing import Any
 
 import numpy as np
 
@@ -45,7 +46,7 @@ class FleetOptimizer(BaseOptimizer):
         >>> fleet_schedule = optimizer.optimize(sessions, site_config)
     """
 
-    def optimize(  # type: ignore[override]
+    def optimize(
         self,
         sessions: list[EVSession],
         site_config: SiteConfig,
@@ -105,7 +106,7 @@ class FleetOptimizer(BaseOptimizer):
                 if t >= session.arrival_time and interval_end <= session.departure_time:
                     active[i, t_idx] = 1.0
 
-        constraints: list = []
+        constraints: list[Any] = []
 
         for i, session in enumerate(sessions):
             charger = site_config.get_charger(session.charger_id)
@@ -131,7 +132,7 @@ class FleetOptimizer(BaseOptimizer):
             )
 
             energy_added = P[i, :] * session.charging_efficiency * dt_hours / 1000.0
-            soc_energy = initial_e + cp.cumsum(energy_added)
+            soc_energy = initial_e + cp.cumsum(energy_added)  # type: ignore[attr-defined]
 
             constraints.append(
                 soc_energy * 100.0 / session.battery_capacity_kwh <= 100.0
@@ -151,7 +152,7 @@ class FleetOptimizer(BaseOptimizer):
                     - SOC_TOLERANCE_PERCENT / 100.0 * session.battery_capacity_kwh
                 )
 
-        fleet_power = cp.sum(P, axis=0)
+        fleet_power = cp.sum(P, axis=0)  # type: ignore[attr-defined]
         constraints.append(fleet_power <= site_config.grid.max_site_power_w)
 
         dr = site_config.grid
@@ -167,17 +168,17 @@ class FleetOptimizer(BaseOptimizer):
                 if dr.demand_response_start <= t < dr.demand_response_end:
                     constraints.append(fleet_power[t_idx] <= dr_limit)
 
-        cost = cp.sum(cp.multiply(prices, cp.sum(P * dt_hours / 1000.0, axis=0)))
+        cost = cp.sum(cp.multiply(prices, cp.sum(P * dt_hours / 1000.0, axis=0)))  # type: ignore[attr-defined]
         problem = cp.Problem(cp.Minimize(cost), constraints)
 
         try:
-            problem.solve(solver=self.solver, verbose=self.verbose)
+            problem.solve(solver=self.solver, verbose=self.verbose)  # type: ignore[no-untyped-call]
         except cp.SolverError:
             logger.warning(
                 "Primary solver %s failed, trying %s", self.solver, FALLBACK_SOLVER
             )
             try:
-                problem.solve(solver=FALLBACK_SOLVER, verbose=self.verbose)
+                problem.solve(solver=FALLBACK_SOLVER, verbose=self.verbose)  # type: ignore[no-untyped-call]
             except cp.SolverError as e:
                 raise SolverError(f"Fleet solver failed: {e}") from e
 
@@ -187,7 +188,7 @@ class FleetOptimizer(BaseOptimizer):
                 "Check: feeder limit too tight, insufficient session time."
             )
 
-        P_val = np.where(P.value < MIN_POWER_THRESHOLD_W, 0.0, P.value)  # noqa: N806
+        P_val = np.where(P.value < MIN_POWER_THRESHOLD_W, 0.0, P.value)  # type: ignore[operator, arg-type]  # noqa: N806
         ev_schedules = [
             self._build_ev_schedule(
                 sessions[i], intervals, P_val[i, :], prices, dt_hours

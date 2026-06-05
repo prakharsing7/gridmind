@@ -13,6 +13,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 import json
 import logging
+from typing import Any
 
 from ...constants import OCPP16_MAX_PERIODS_PER_PROFILE
 from ...exceptions import OCPPEncodingError
@@ -27,7 +28,7 @@ def build_set_charging_profile_request(
     profile_id: int = 1,
     stack_level: int = 0,
     transaction_id: str | None = None,
-) -> dict:
+) -> dict[str, Any]:
     """
     Convert an EVChargingSchedule to an OCPP 2.0.1 SetChargingProfile.req dict.
 
@@ -68,7 +69,7 @@ def build_set_charging_profile_request(
         "chargingRateUnit": "W",
         "chargingSchedulePeriod": periods,
     }
-    charging_profile: dict = {
+    charging_profile: dict[str, Any] = {
         "id": profile_id,
         "stackLevel": stack_level,
         "chargingProfilePurpose": "TxDefaultProfile",
@@ -83,7 +84,7 @@ def build_set_charging_profile_request(
     return {"evseId": evse_id, "chargingProfile": charging_profile}
 
 
-def to_json(request: dict, indent: int = 2) -> str:
+def to_json(request: dict[str, Any], indent: int = 2) -> str:
     """Serialise OCPP 2.0.1 request dict to JSON string."""
     return json.dumps(request, indent=indent)
 

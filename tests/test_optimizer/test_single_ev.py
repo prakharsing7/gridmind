@@ -1,5 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
+import pytest
+
 from gridmind.models.site import PricePeriod
 from gridmind.optimizer.base import BaseOptimizer
 
@@ -104,3 +106,57 @@ def test_flat_rate_produces_positive_cost(single_session) -> None:
     sched = opt.optimize(single_session, flat_rate=0.25)
     assert sched.total_cost is not None
     assert sched.total_cost > 0
+
+
+def test_zero_interval_horizon_raises() -> None:
+    """When _discretise_horizon returns empty list, optimizer raises InfeasibleError."""
+    from unittest.mock import patch
+
+    from gridmind.exceptions import InfeasibleError
+    from gridmind.models.session import EVSession
+
+    base = datetime(2026, 6, 1, 18, 0, 0, tzinfo=UTC)
+    session = EVSession(
+        session_id="zero-window",
+        charger_id="c001",
+        arrival_time=base,
+        departure_time=base + timedelta(hours=14),
+        initial_soc=30.0,
+        target_soc=80.0,
+        battery_capacity_kwh=60.0,
+        max_charge_rate_w=7360.0,
+    )
+    opt = SingleEVOptimizer(interval_minutes=15)
+    with (
+        patch.object(opt, "_discretise_horizon", return_value=[]),
+        pytest.raises(InfeasibleError, match="zero time intervals"),
+    ):
+        opt.optimize(session)
+
+
+def test_infeasible_session_raises() -> None:
+    """Physically infeasible session (too little time/power) raises InfeasibleError."""
+    from gridmind.exceptions import InfeasibleError
+    from gridmind.models.session import EVSession
+
+    # Validator allows 5% tolerance, so make it impossible within that margin
+    # Use min_charge_rate_w > max_charge_rate_w is invalid; instead use very tight SoC
+    # with 0-10% initial and 100% target in 15 minutes at 100W
+    base = datetime(2026, 6, 1, 18, 0, 0, tzinfo=UTC)
+    # 0% → 80% of 60 kWh at 100 W would take 480 h — not reachable
+    # but pydantic validator blocks this. Use min_soc constraint that kills feasibility.
+    # Easiest: force min_soc=99 with initial_soc=30, target_soc=80 → always infeasible
+    session = EVSession(
+        session_id="infeasible-session",
+        charger_id="c001",
+        arrival_time=base,
+        departure_time=base + timedelta(hours=14),
+        initial_soc=30.0,
+        target_soc=80.0,
+        battery_capacity_kwh=60.0,
+        max_charge_rate_w=7360.0,
+        min_soc=99.0,  # must stay above 99% at all times but starts at 30% → infeasible
+    )
+    opt = SingleEVOptimizer(interval_minutes=15)
+    with pytest.raises(InfeasibleError):
+        opt.optimize(session)

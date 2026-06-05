@@ -168,3 +168,51 @@ def test_empty_periods_raises() -> None:
     )
     with pytest.raises(OCPPEncodingError, match="no periods"):
         build_set_charging_profile_request(sched)
+
+
+def test_naive_datetime_raises() -> None:
+    """Schedule periods with naive (no-tz) datetimes must raise OCPPEncodingError."""
+    naive_base = datetime(2026, 6, 1, 18, 0, 0)  # no tzinfo
+    from gridmind.models.schedule import EVChargingSchedule, SchedulePeriod
+
+    sched = EVChargingSchedule(
+        session_id="s001",
+        charger_id="c001",
+        periods=[
+            SchedulePeriod(
+                start=naive_base,
+                end=naive_base + timedelta(hours=5),
+                power_w=7360.0,
+                price_per_kwh=0.25,
+            )
+        ],
+        total_energy_kwh=36.8,
+        final_soc=80.0,
+        total_cost=9.2,
+        target_soc_met=True,
+        feasible=True,
+        solver_status="optimal",
+        optimised_at=BASE,
+        optimisation_duration_ms=50.0,
+    )
+    with pytest.raises(OCPPEncodingError, match="timezone-aware"):
+        build_set_charging_profile_request(sched)
+
+
+def test_charging_rate_unit_amperes() -> None:
+    """Using AMPERES unit should convert W -> A correctly."""
+    sched = _make_schedule()
+    req = build_set_charging_profile_request(
+        sched, charging_rate_unit=ChargingRateUnit.AMPERES
+    )
+    first_period = req.csChargingProfiles.chargingSchedule.chargingSchedulePeriod[0]
+    # 7360 W / 230 V = 32.0 A
+    assert first_period.limit == pytest.approx(32.0, abs=0.1)
+
+
+def test_serialise_dt_raises_for_non_datetime() -> None:
+    """_serialise_dt should raise TypeError for non-datetime objects."""
+    from gridmind.ocpp.v16.charging_profile import _serialise_dt
+
+    with pytest.raises(TypeError):
+        _serialise_dt("not-a-datetime")

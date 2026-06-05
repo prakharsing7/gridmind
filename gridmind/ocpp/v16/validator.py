@@ -7,17 +7,18 @@ from __future__ import annotations
 from datetime import datetime
 import importlib.resources
 import json
+from typing import Any, cast
 
 import jsonschema
 
 from ...models.ocpp_types import OCPP16SetChargingProfileRequest
 
 
-def _load_schema() -> dict:
+def _load_schema() -> dict[str, Any]:
     schema_path = importlib.resources.files("gridmind.ocpp.v16.schemas").joinpath(
         "SetChargingProfile.json"
     )
-    return json.loads(schema_path.read_text())
+    return cast(dict[str, Any], json.loads(schema_path.read_text()))
 
 
 def _serialise(obj: object) -> str:

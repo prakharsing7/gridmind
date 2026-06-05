@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 try:
+    from matplotlib.figure import Figure as MplFigure
     import matplotlib.pyplot as plt
 except ImportError as e:
     raise ImportError("matplotlib required: pip install 'gridmind[viz]'") from e
@@ -22,7 +23,7 @@ def plot_fleet_schedule(
     sessions: list[EVChargingSchedule],
     fleet_schedule: FleetSchedule | None = None,
     title: str | None = None,
-) -> plt.Figure:
+) -> MplFigure:
     """Plot stacked power bar chart for all EV sessions over time."""
     fig, ax = plt.subplots(figsize=PLOT_FIGSIZE_FLEET)
 
@@ -37,7 +38,7 @@ def plot_fleet_schedule(
         return fig
 
     t_starts = all_times[:-1]
-    colours = plt.cm.Set2.colors
+    colours = plt.cm.Set2.colors  # type: ignore[attr-defined]
     bottom = np.zeros(len(t_starts))
 
     for ev_idx, session in enumerate(sessions):
@@ -103,7 +104,7 @@ def plot_fleet_schedule(
 
 def plot_single_schedule(
     session: EVChargingSchedule, title: str | None = None
-) -> plt.Figure:
+) -> MplFigure:
     """Plot power timeline for a single EV session."""
     fig, ax = plt.subplots(figsize=PLOT_FIGSIZE_SINGLE)
     powers: list[float] = []

@@ -7,6 +7,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -51,13 +52,13 @@ class BaseOptimizer(ABC):
     def _get_price_at(
         self,
         t: datetime,
-        price_periods: list,  # list[PricePeriod] — avoid circular import
+        price_periods: list[Any],  # list[PricePeriod] — avoid circular import
         default_price: float = 0.25,
     ) -> float:
         """Return electricity price at time t; falls back to default_price."""
         for period in price_periods:
             if period.start <= t < period.end:
-                return period.price
+                return float(period.price)
         return default_price
 
     def _soc_to_energy_kwh(
